@@ -30,14 +30,8 @@ while True:
         if not data:
             break
         
-        resp = int(data.decode('utf-8'))
-        sresp = str(resp) + ' ao quadrado é ' + str(resp*resp)
-
-        #print(sresp)
-
         # Servidor devolve data
-        #conexao.send(b'Eco=> ' + data)
-        conexao.send(sresp.encode())
-    
+        conexao.send(b'Eco=> ' + data)
+
     conexao.close()
 
