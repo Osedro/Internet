@@ -13,4 +13,3 @@ taquisitar = aquisitar()
 taquisitar.start()
 #tplot_paralelo.start()
 #tgui.start()
-

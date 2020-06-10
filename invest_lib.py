@@ -1,9 +1,10 @@
 import urllib.request
 import urllib.error
-import time
+import time, glob
 import matplotlib.pyplot as plt
 from datetime import datetime
 import threading
+import matplotlib.animation as animation
 
 acoes = ['B3SA3','BBFI11b','BRDT3','GNDI3','ITSA3','ITSA4','KNRI11','MGLU3','XPML11','YDUQ3']
 pids = {'B3SA3':'18628','BBFI11b':'986549','BRDT3':'1056489','MGLU3':'18729','GNDI3':'1073664',
@@ -44,6 +45,79 @@ def get_valor(acao):
 
     except:
         print('ERRO')
+
+class aquisitar(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    
+    def run(self):
+                
+        hora_atual = datetime.now().strftime('%H:%M')
+        hora_int = int(hora_atual[0:2])
+
+        while hora_int<10:
+            time.sleep(30)
+            hora_atual = datetime.now().strftime('%H:%M')
+            print(hora_atual)
+            hora_int = int(hora_atual[0:2])
+
+        while hora_int < 17 and hora_int >  9:
+        #for t in range(10):
+            buscar_e_escrever()
+            hora_atual = datetime.now().strftime('%H:%M')
+            hora_int = int(hora_atual[0:2])
+            print('\n',hora_atual)
+            #print(t,'\n\n')
+            time.sleep(120)
+
+        print('TERMINOU')
+
+def plotar_paralelo(i, fig, subgrafs):
+    data = str(datetime.now().strftime('%d-%m-%Y'))
+    contx = 0
+    conty = 0
+    for acao in acoes:
+        try:
+            arquivo = open(acao+'/'+data+'.txt','r')
+            texto = arquivo.readlines()
+            acaovet = []
+            acaovetinit = []
+            linha = texto[0].split(',')
+            acaoinit = float(linha[1][0:linha[1].index('\n')])
+            for i in texto:
+                linha = i.split(',')
+                acaovet.append(float(linha[1][0:linha[1].index('\n')]))
+                acaovetinit.append(acaoinit)
+            arquivo.close()
+
+            
+            subgrafs[contx][conty%3].clear()
+            subgrafs[contx][conty%3].plot(acaovet)
+            subgrafs[contx][conty%3].plot(acaovetinit)
+
+        except:
+            print(acao+' ainda está vazia para o dia '+data)
+        subgrafs[contx][conty%3].set_title(acao)
+        
+        
+
+        conty = conty+1
+        if conty%3 == 0:
+            contx = contx+1
+    
+    #fig.tight_layout(pad=0.01)
+    fig.subplots_adjust(left=0.06,bottom=0.05,top=0.95,right=0.99,wspace=0.15,hspace=0.4)
+    #plt.show()
+
+class tcplotar_paralelo(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    
+    def run(self):
+        fig, subgrafs = plt.subplots(4,3)
+
+        ani = animation.FuncAnimation(fig, plotar_paralelo,fargs=(fig,subgrafs), interval=120000)
+        plt.show()
 
 class tc_mglu3(threading.Thread):
     def __init__(self):
@@ -144,6 +218,82 @@ class tc_yduq3(threading.Thread):
         print('YDUQ3: R$', yduq3)
         if yduq3 != None:
             write_yduq3(yduq3)
+
+def plot_all_today():
+    #fig = plt.figure(len(acoes))
+    #fig, subgrafs = plt.subplots(len(acoes))
+    data = str(datetime.now().strftime('%d-%m-%Y'))
+    fig, subgrafs = plt.subplots(4,3)
+    contx = 0
+    conty = 0
+    for acao in acoes:
+        arquivo = open(acao+'/'+data+'.txt','r')
+        texto = arquivo.readlines()
+        acaovet = []
+        acaovetinit = []
+        linha = texto[0].split(',')
+        acaoinit = float(linha[1][0:linha[1].index('\n')])
+        for i in texto:
+            linha = i.split(',')
+            acaovet.append(float(linha[1][0:linha[1].index('\n')]))
+            acaovetinit.append(acaoinit)
+        arquivo.close()
+
+        aumento = (acaovet[len(acaovet)-1]-acaovet[0])*100/acaovet[0]
+        
+        subgrafs[contx][conty%3].plot(acaovet)
+        subgrafs[contx][conty%3].plot(acaovetinit)
+        if aumento >= 0:
+            subgrafs[contx][conty%3].set_title(acao+': +'+format(aumento,'.2f')+'%', color='green')
+        else:
+            subgrafs[contx][conty%3].set_title(acao+': '+format(aumento,'.2f')+'%', color='red')
+        
+
+        conty = conty+1
+        if conty%3 == 0:
+            contx = contx+1
+    
+    #fig.tight_layout(pad=0.01)
+    fig.subplots_adjust(left=0.06,bottom=0.05,top=0.95,right=0.99,wspace=0.15,hspace=0.4)
+    plt.show()
+
+def plot_all(data):
+    #fig = plt.figure(len(acoes))
+    #fig, subgrafs = plt.subplots(len(acoes))
+    #dia_atual = str(datetime.now().strftime('%d-%m-%Y'))
+    fig, subgrafs = plt.subplots(4,3)
+    contx = 0
+    conty = 0
+    for acao in acoes:
+        arquivo = open(acao+'/'+data+'.txt','r')
+        texto = arquivo.readlines()
+        acaovet = []
+        acaovetinit = []
+        linha = texto[0].split(',')
+        acaoinit = float(linha[1][0:linha[1].index('\n')])
+        for i in texto:
+            linha = i.split(',')
+            acaovet.append(float(linha[1][0:linha[1].index('\n')]))
+            acaovetinit.append(acaoinit)
+        arquivo.close()
+
+        aumento = (acaovet[len(acaovet)-1]-acaovet[0])*100/acaovet[0]
+        
+        subgrafs[contx][conty%3].plot(acaovet)
+        subgrafs[contx][conty%3].plot(acaovetinit)
+        if aumento >= 0:
+            subgrafs[contx][conty%3].set_title(acao+': +'+format(aumento,'.2f')+'%', color='green')
+        else:
+            subgrafs[contx][conty%3].set_title(acao+': '+format(aumento,'.2f')+'%', color='red')
+        
+
+        conty = conty+1
+        if conty%3 == 0:
+            contx = contx+1
+    
+    #fig.tight_layout(pad=0.01)
+    fig.subplots_adjust(left=0.06,bottom=0.05,top=0.95,right=0.99,wspace=0.15,hspace=0.4)
+    plt.show()
 
 def plot(acao,data):
     arquivo = open(acao+'/'+data+'.txt','r')
@@ -500,3 +650,89 @@ def write_yduq3(valor):
     arquivo = open(arquivo_path,'a')
     arquivo.write(datetime.now().strftime('%H:%M')+','+str(valor)+'\n')
     arquivo.close()
+
+def ultimas_n(acao,n):
+
+    ultimas = []*n
+
+    data = str(datetime.now().strftime('%d-%m-%Y'))
+    data_sep = data.split('-')
+    mes_atual = int(data_sep[1])
+
+    arquivos = []
+
+    meses = []
+
+    for i in range(12):
+        # cria a linha i
+        linha = [] # lista vazia
+        # coloque linha na matriz
+        meses.append(linha)
+
+    for f in glob.glob(acao+'/*.*'):
+        #arquivos.append(f)
+        aux = f.split('-')
+        mes = int(aux[1])
+
+        meses[mes-1].append(f)
+    '''
+    for l in meses:
+        l.reverse()
+    '''
+    cont = 0
+
+    while cont < n:
+        if len(meses[mes_atual-1]) != 0:
+            ultimas.append(meses[mes_atual-1].pop())
+            cont = cont + 1
+        elif mes_atual == 0:
+            break
+        else:
+            mes_atual=mes_atual-1
+        
+    ultimas.reverse()
+
+    return ultimas
+
+
+def plot_all_n(n):
+    fig, subgrafs = plt.subplots(4,3)
+    contx = 0
+    conty = 0
+    for acao in acoes:
+        last = ultimas_n(acao,13)
+        acaovet = []
+        acaovetinit = []
+        flaginit = 0
+        for l in last:
+            arquivo = open(l,'r')
+            texto = arquivo.readlines()
+            if flaginit == 0:
+                linha = texto[0].split(',')
+                acaoinit = float(linha[1][0:linha[1].index('\n')])
+                flaginit=1
+            for i in texto:
+                linha = i.split(',')
+                acaovet.append(float(linha[1][0:linha[1].index('\n')]))
+                acaovetinit.append(acaoinit)
+            arquivo.close()
+
+        aumento = (acaovet[len(acaovet)-1]-acaovet[0])*100/acaovet[0]
+        
+        subgrafs[contx][conty%3].plot(acaovet)
+        subgrafs[contx][conty%3].plot(acaovetinit)
+        if aumento >= 0:
+            subgrafs[contx][conty%3].set_title(acao+': +'+format(aumento,'.2f')+'%', color='green')
+        else:
+            subgrafs[contx][conty%3].set_title(acao+': '+format(aumento,'.2f')+'%', color='red')
+        
+
+        conty = conty+1
+        if conty%3 == 0:
+            contx = contx+1
+
+    fig.subplots_adjust(left=0.06,bottom=0.05,top=0.95,right=0.99,wspace=0.15,hspace=0.4)
+    plt.show()
+
+
+
