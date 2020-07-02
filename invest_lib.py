@@ -6,9 +6,10 @@ from datetime import datetime
 import threading
 import matplotlib.animation as animation
 
-acoes = ['B3SA3','BBFI11b','BRDT3','GNDI3','ITSA3','ITSA4','KNRI11','MGLU3','XPML11','YDUQ3']
+acoes = ['B3SA3','BBFI11b','BRDT3','GNDI3','ITSA3','ITSA4','KNRI11','MGLU3','XPML11','YDUQ3','TRPL4','BOVA11']
 pids = {'B3SA3':'18628','BBFI11b':'986549','BRDT3':'1056489','MGLU3':'18729','GNDI3':'1073664',
-        'ITSA3':'18705','ITSA4':'18706','KNRI11':'940958','XPML11':'1057399','YDUQ3':'18673'}
+        'ITSA3':'18705','ITSA4':'18706','KNRI11':'940958','XPML11':'1057399','YDUQ3':'18673',
+        'TRPL4':'18805','BOVA11':'39004'}
 sites = {'B3SA3':"https://br.investing.com/equities/bmfbovespa-on-nm",
         'YDUQ3':"https://br.investing.com/equities/estacio-part-on-nm",
         'XPML11':"https://br.investing.com/etfs/xp-malls-fdo-inv-imob-fii",
@@ -18,7 +19,9 @@ sites = {'B3SA3':"https://br.investing.com/equities/bmfbovespa-on-nm",
         'GNDI3':"https://br.investing.com/equities/notre-dame-intermedica-participacoe",
         'BRDT3':"https://br.investing.com/equities/petrobras-distribuidora",
         'BBFI11b':"https://br.investing.com/equities/progressivo",
-        'MGLU3':"https://br.investing.com/equities/magaz-luiza-on-nm"}
+        'MGLU3':"https://br.investing.com/equities/magaz-luiza-on-nm",
+        'TRPL4':"https://br.investing.com/equities/tran-paulist-pn",
+        'BOVA11':"https://br.investing.com/etfs/ishares-ibovespa"}
 
 def get_valor(acao):
     site = sites[acao]
@@ -54,7 +57,6 @@ class aquisitar(threading.Thread):
                 
         hora_atual = datetime.now().strftime('%H:%M')
         hora_int = int(hora_atual[0:2])
-
         while hora_int<10:
             time.sleep(30)
             hora_atual = datetime.now().strftime('%H:%M')
@@ -69,8 +71,6 @@ class aquisitar(threading.Thread):
             print('\n',hora_atual)
             #print(t,'\n\n')
             time.sleep(120)
-
-        print('TERMINOU')
 
 def plotar_paralelo(i, fig, subgrafs):
     data = str(datetime.now().strftime('%d-%m-%Y'))
@@ -90,14 +90,20 @@ def plotar_paralelo(i, fig, subgrafs):
                 acaovetinit.append(acaoinit)
             arquivo.close()
 
-            
+            aumento = (acaovet[len(acaovet)-1]-acaovet[0])*100/acaovet[0]
+
             subgrafs[contx][conty%3].clear()
             subgrafs[contx][conty%3].plot(acaovet)
             subgrafs[contx][conty%3].plot(acaovetinit)
 
+            if aumento >= 0:
+                subgrafs[contx][conty%3].set_title(acao+': +'+format(aumento,'.2f')+'%', color='green')
+            else:
+                subgrafs[contx][conty%3].set_title(acao+': '+format(aumento,'.2f')+'%', color='red')
+
         except:
             print(acao+' ainda está vazia para o dia '+data)
-        subgrafs[contx][conty%3].set_title(acao)
+        #subgrafs[contx][conty%3].set_title(acao)
         
         
 
@@ -219,6 +225,26 @@ class tc_yduq3(threading.Thread):
         if yduq3 != None:
             write_yduq3(yduq3)
 
+class tc_trpl4(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        trpl4 = get_valor('TRPL4')
+        print('TRPL4: R$', trpl4)
+        if trpl4 != None:
+            write_trpl4(trpl4)
+
+class tc_bova11(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        bova11 = get_valor('BOVA11')
+        print('BOVA11: R$', bova11)
+        if bova11 != None:
+            write_bova11(bova11)
+
 def plot_all_today():
     #fig = plt.figure(len(acoes))
     #fig, subgrafs = plt.subplots(len(acoes))
@@ -328,6 +354,8 @@ def buscar_e_escrever():
     tknri11 = tc_knri11()
     txpml11 = tc_xpml11()
     tyduq3 = tc_yduq3()
+    ttrpl4 = tc_trpl4()
+    tbova11 = tc_bova11()
 
     tmglu3.start()
     tb3sa3.start()
@@ -339,6 +367,8 @@ def buscar_e_escrever():
     tknri11.start()
     txpml11.start()
     tyduq3.start()
+    ttrpl4.start()
+    tbova11.start()
 
 def get_valor_mglu3():
     site = "https://br.investing.com/equities/magaz-luiza-on-nm"
@@ -651,6 +681,20 @@ def write_yduq3(valor):
     arquivo.write(datetime.now().strftime('%H:%M')+','+str(valor)+'\n')
     arquivo.close()
 
+def write_trpl4(valor):
+    dia_atual = str(datetime.now().strftime('%d-%m-%Y'))
+    arquivo_path = 'TRPL4/' + dia_atual + '.txt'
+    arquivo = open(arquivo_path,'a')
+    arquivo.write(datetime.now().strftime('%H:%M')+','+str(valor)+'\n')
+    arquivo.close()
+
+def write_bova11(valor):
+    dia_atual = str(datetime.now().strftime('%d-%m-%Y'))
+    arquivo_path = 'BOVA11/' + dia_atual + '.txt'
+    arquivo = open(arquivo_path,'a')
+    arquivo.write(datetime.now().strftime('%H:%M')+','+str(valor)+'\n')
+    arquivo.close()
+
 def ultimas_n(acao,n):
 
     ultimas = []*n
@@ -659,8 +703,7 @@ def ultimas_n(acao,n):
     data_sep = data.split('-')
     mes_atual = int(data_sep[1])
 
-    arquivos = []
-
+    arquivos = glob.glob(acao+'/*.*')
     meses = []
 
     for i in range(12):
@@ -669,16 +712,16 @@ def ultimas_n(acao,n):
         # coloque linha na matriz
         meses.append(linha)
 
-    for f in glob.glob(acao+'/*.*'):
+    for f in arquivos:
         #arquivos.append(f)
         aux = f.split('-')
         mes = int(aux[1])
-
         meses[mes-1].append(f)
-    '''
-    for l in meses:
-        l.reverse()
-    '''
+
+    for i in range(12):
+        meses[i] = sorted(meses[i])
+
+
     cont = 0
 
     while cont < n:
@@ -700,7 +743,7 @@ def plot_all_n(n):
     contx = 0
     conty = 0
     for acao in acoes:
-        last = ultimas_n(acao,13)
+        last = ultimas_n(acao,n)
         acaovet = []
         acaovetinit = []
         flaginit = 0
