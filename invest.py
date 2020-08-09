@@ -2,7 +2,7 @@ import time
 import sys
 from datetime import datetime
 from invest_lib import *
-from gui import *
+#from gui import *
 import threading
 
 
@@ -14,10 +14,12 @@ taquisitar.start()
 tplot_paralelo.start()
 #tgui.start()
 
-taquisitar.join()
-print("Thread aquisitar encerrada.")
-tplot_paralelo.join()
-print("Thread plot paralelo encerrada.")
-print("Encerrando...")
-
-exit()
+try:
+    taquisitar.join()
+    print("Thread aquisitar encerrada.")
+    tplot_paralelo.join()
+    print("Thread plot paralelo encerrada.")
+    print("Encerrando...")
+except:
+    print("Erro")
+#exit()
