@@ -7,18 +7,18 @@ import threading
 
 
 taquisitar = aquisitar()
-tplot_paralelo = tcplotar_paralelo()
+#tplot_paralelo = tcplotar_paralelo()
 #tgui = tcgui()
 
 taquisitar.start()
-tplot_paralelo.start()
+#tplot_paralelo.start()
 #tgui.start()
 
 try:
     taquisitar.join()
     print("Thread aquisitar encerrada.")
-    tplot_paralelo.join()
-    print("Thread plot paralelo encerrada.")
+    #tplot_paralelo.join()
+    #print("Thread plot paralelo encerrada.")
     print("Encerrando...")
 except:
     print("Erro")

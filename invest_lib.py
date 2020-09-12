@@ -76,6 +76,12 @@ def plotar_paralelo(i, fig, subgrafs):
     data = str(datetime.now().strftime('%d-%m-%Y'))
     contx = 0
     conty = 0
+    hora_atual = datetime.now().strftime('%H:%M')
+    hora_int = int(hora_atual[0:2])
+
+    if hora_int > 17:
+        plt.close(fig)
+
     for acao in acoes:
         try:
             arquivo = open(acao+'/'+data+'.txt','r')

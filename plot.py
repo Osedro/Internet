@@ -7,8 +7,10 @@ from datetime import datetime
 import threading
 import matplotlib.animation as animation
 
-plot_all_today()
-#plot_all_n(3)
+n = int(input("Digite o numero de dias: "))
+
+#plot_all_today()
+plot_all_n(n)
 
 '''
 

@@ -1,11 +1,11 @@
 from socket import *
 
 # IP do servidor
-serverHost = '192.168.56.1'
-serverPort = 50007
+serverHost = '192.168.0.111'
+serverPort = 8080
 
 #mensagem = [b'Salve salve, rapaziada do windows']
-entrada = input()
+entrada = "OIE"
 mensagem = []
 mensagem.append(entrada.encode())
 
