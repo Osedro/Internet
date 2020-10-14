@@ -1,0 +1,1 @@
+/usr/bin/python3 /home/leonardo/Documents/Internet/invest.py 
